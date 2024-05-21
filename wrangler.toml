@@ -1,0 +1,10 @@
+name = "bulk-terabox-dl"
+compatibility_date = "2024-05-18"
+
+[site]
+bucket = "./src/page"
+
+[vars]
+JS_TOKEN = "Fill this with JS_TOKEN"
+DP_LOGID = "Fill this with DP_LOGID"
+COOKIES = "Fill this with COOKIES"

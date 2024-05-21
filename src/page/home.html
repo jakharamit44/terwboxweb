@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="shortcut icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/BlackFlagSymbol.svg/177px-BlackFlagSymbol.svg.png" type="image/x-icon">
+    <link rel="stylesheet" href="./style.css" />
+    <title>Bulk Terabox Downloader</title>
+</head>
+
+<body>
+    <!-- <div class="container">
+            <h1>Get Link Terabox</h1>
+            <div class="form-group">
+                <label for="input-url">Enter URL:</label>
+                <input type="text" id="input-url" placeholder="https://terabox.com/s/117NfiRSK_e4ImEEDqQGh_g" />
+            </div>
+            <div class="form-group">
+                <button id="get-link-button">Get Link</button>
+            </div>
+            <div class="output">
+                <div class="tree-view"></div>
+            </div>
+        </div> -->
+
+    <!-- // make a text bbox where the user can enter the multi-line text and then click on the button to generate the link
+
+        // the text will contain the links of the terabox and then the user will click on the button to generate the link and then the user will be able to download the file -->
+    <!--
+        // there will also be a option of the download all button which will download all the files -->
+
+
+    <h1><a href="#">Bulk Terabox Downloader</a></h1>
+
+    <div class="form-group">
+        <label for="text-area">Enter URL:
+        <textarea class="text-area" name="text-area" id="text-area" placeholder="https://terabox.com/s/117NfiRSK_e4ImEEDqQGh_g &#10; https://teraboxapp.com/s/1mBRkNLNLr39WiV-6DgN8UP"  rows="5" cols="20"></textarea>
+    </div>
+</label>
+    <div class="col-md-4 text-center">
+    <button class="button" id="get-links-button">Get Links </button>
+    </div>
+    <div class="form-group"></div>
+    <div class="form-group"></div>
+    <div class="form-group"></div>
+    <div class="form-group">
+        <label for="text-area">Result:</label>
+    <div class="output">
+        <div class="tree-view"></div>
+    </div>
+    
+    <div class="form-group"></div>
+    <div class="col-md-4 text-center">
+    <button class="button" id="download-all-button">Download All</button>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"
+        integrity="sha512-fD9DI5bZwQxOi7MhYWnnNPlvXdp/2Pj3XSTRrFs5FQa4mizyGLnJcN6tuvUS6LbmgN1ut+XGSABKvjN0H6Aoow=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="./script.js"></script>
+    <script>
+        function fetchDownload({ shareid, uk, sign, timestamp, fs_id }) {
+            return fetch("/api/get-download", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ shareid, uk, sign, timestamp, fs_id }),
+            }).then(async function (res) {
+                return await res.json()
+            })
+        }
+
+        function fetchInfo(shortUrl) {
+            return fetch("/api/get-info?shorturl=" + shortUrl).then(async function (res) {
+                const body = await res.json()
+
+                if (!body.ok) return alert(body.message)
+
+                // handle Info
+                function recursiveList(list) {
+                    return list.map((item) => ({
+                        isDir: item.is_dir != 0,
+                        name: item.filename,
+                        category: item.is_dir != 0 || parseInt(item.category),
+                        size: item.is_dir != 0 || formatStorageSize(parseInt(item.size)),
+                        children:
+                            item.children && item.children.length > 0
+                                ? recursiveList(item.children)
+                                : undefined,
+                        downloadAction:
+                            item.is_dir != 0 ||
+                            async function () {
+                                const res = await fetchDownload({
+                                    shareid: body.shareid,
+                                    uk: body.uk,
+                                    sign: body.sign,
+                                    timestamp: body.timestamp,
+                                    fs_id: item.fs_id,
+                                })
+
+                                if (!res.ok) return alert(res.message)
+
+                                window.open(res.downloadLink, '_blank')
+                            },
+                    }))
+                }
+
+                return recursiveList(body.list)
+            })
+
+        }
+
+        const textArea = document.getElementById("text-area")
+
+        const getLinksButton = document.getElementById("get-links-button")
+        const treeElement = document.querySelector(".tree-view")
+
+        const downloadAllButton = document.getElementById("download-all-button")
+
+        async function genTree(url, treeViewElement) {
+
+
+            if (!url) return alert('Url must not empty!!')
+
+            const regex = /\/([A-Za-z0-9_-]+)$/
+            const match = url.match(regex)
+            if (match) {
+                const shortUrl = match[1]
+
+                treeViewElement.innerHTML = '<p style="text-align:center;">Loading...</p>'
+
+                const d = await fetchInfo(shortUrl)
+
+                console.log(d)
+
+                treeViewElement.innerHTML = ''
+
+                TreeView(d, treeViewElement)
+            } else {
+                alert("URL not support")
+            }
+        }
+
+        async function genTreeforeach() {
+
+            // get all the links from the text area
+
+            const text = textArea.value
+
+            // extract all the links from the text that starts with https://terabox.com/s/
+
+
+            const regex = /\bhttps?:\/\/\S+\b/g;
+            const links = text.match(regex);
+
+
+
+            console.log(links)
+
+            // for each link generate the tree
+
+            for (const link of links) {
+                const shortUrl = link
+
+                // check if the link is terabox link or not
+
+                if (shortUrl.includes('box') || shortUrl.includes('terabox') || shortUrl.includes('tbox') || shortUrl.includes('com/s/')) {
+
+                    // create a new tree view element for each link and append it to the tree element
+
+                    const treeViewElement = document.createElement('div')
+
+                    treeViewElement.classList.add('tree-view')
+
+                    treeElement.appendChild(treeViewElement)
+
+                    // generate the tree for each link
+
+                    genTree(shortUrl, treeViewElement)
+
+                }
+
+            }
+
+
+
+
+
+        }
+
+        function downloadAll() {
+
+            // it's going to click all elements with the class .file-download
+
+            const downloadButtons = document.querySelectorAll('.file-download')
+
+            console.log(downloadButtons)
+
+            for (const downloadButton of downloadButtons) {
+                downloadButton.click()
+            }
+
+
+
+        }
+
+        getLinksButton.addEventListener("click", genTreeforeach)
+
+        downloadAllButton.addEventListener("click", downloadAll)
+    </script>
+</body>
+
+</html>
