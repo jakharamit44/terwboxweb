@@ -4,10 +4,6 @@ compatibility_date = "2024-05-18"
 [site]
 bucket = "./src/page"  # Ensure this path is correct and points to your build output directory
 
-[build]
-command = "npm run build"
-cwd = "./"
-
 [vars]
 JS_TOKEN = "3D7E5F7E8F8A71A839D6BDE718891A909063E0A4C8C054C0E8D89DC20C0A74FAAAA247DB0AB3A424A027A7B33FF54F6AA67327125C68D46D7E299ADCB80F7129"
 DP_LOGID = "10989800961051610019"
